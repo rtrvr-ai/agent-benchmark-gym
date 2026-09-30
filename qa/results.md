@@ -26,4 +26,4 @@ Reference solutions verify gym behavior. They are not AI-agent benchmark scores.
 - Submitted reference answers through all five sites: L5 6/6, L3 6/6, W3 4/4, W6 5/5 and L10 3/3. These are software checks, not assistant scores.
 - Opened a job receipt in a separate browser context with empty storage; all 6 checks remained available. A simulated address send stayed recorded as a violation after the inbox task was completed.
 - Inspected desktop pages at 1440×1000 and the job detail page at 390×844. Checked navigation, visible forms, saved confirmations and horizontal overflow.
-- Vercel serves the prior static build at `agent-benchmark-gym.vercel.app`; route deployment is checked after this commit is pushed.
+- Vercel deployed the route build at `agent-benchmark-gym.vercel.app`. Opened and refreshed `/jobs/J1`, confirmed the job form, and checked that the root shows only five practice-site links.
