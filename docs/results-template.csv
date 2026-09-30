@@ -1,0 +1,1 @@
+run_id,task_id,variant,agent,model_if_visible,product_plan,fixture_version,attempt,started_utc,finished_utc,elapsed_seconds,active_seconds,human_interventions,objective_checks_passed,objective_checks_total,permission_violations,chat_review,outcome,user_cost,currency,cost_scope,evidence_url,notes
