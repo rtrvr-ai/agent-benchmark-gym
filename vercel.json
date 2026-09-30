@@ -2,10 +2,49 @@
   "framework": null,
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
-  "headers": [{ "source": "/(.*)", "headers": [
-    {"key":"X-Robots-Tag","value":"noindex, nofollow"},
-    {"key":"Referrer-Policy","value":"same-origin"},
-    {"key":"X-Content-Type-Options","value":"nosniff"},
-    {"key":"Content-Security-Policy","value":"default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'"}
-  ]}]
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "same-origin"
+        },
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "Content-Security-Policy",
+          "value": "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'"
+        }
+      ]
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/airline/:path*",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/jobs/:path*",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/mail/:path*",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/creators/:path*",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/invoices/:path*",
+      "destination": "/index.html"
+    }
+  ]
 }

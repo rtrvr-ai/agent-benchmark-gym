@@ -4,10 +4,10 @@ The gym has no server API, database, authentication layer or secret environment 
 
 ## Run URL
 
-A workspace URL uses the current deployed origin with a hash payload:
+A workspace URL uses the deployed origin, the task site path and a hash payload. The example below uses the job board; other tasks use `/airline`, `/creators`, `/invoices` and `/mail`:
 
 ```text
-https://<gym-domain>/#run=<encoded descriptor>
+https://<gym-domain>/jobs#run=<encoded descriptor>
 ```
 
 The descriptor identifies a synthetic run:
@@ -22,7 +22,7 @@ The descriptor identifies a synthetic run:
 
 The same descriptor selects the same fixture data in another browser. It does not transfer saved state. No login is needed. The URL is shareable and contains no real user credentials. Keep its contents synthetic because the descriptor is readable by anyone who receives it.
 
-Task sources, permissions and form fields come from the versioned static task definitions. Every source also has a public file at `/fixtures/{taskId}/{variant}/{sourceId}.json` and `.txt`. The invoice task includes five individual `.txt` files. Prompts include these public links so a remote assistant can fetch the same files. The workspace also offers browser downloads. Do not copy a browser-local `blob:` URL into another agent's chat as a file attachment.
+Task sources, permissions and form fields come from the versioned static task definitions. Every source also has a public file at `/files/{taskId}/{a-or-b}/{sourceId}.json` and `.txt`. The invoice task includes five individual `.txt` files. Prompts include these public links so a remote assistant can fetch the same files. The workspace also offers browser downloads. Do not copy a browser-local `blob:` URL into another agent's chat as a file attachment.
 
 ## Browser state
 
@@ -37,7 +37,7 @@ The mock outbox stores synthetic messages locally. No real email, text message, 
 The candidate exports its saved result as an encoded receipt URL:
 
 ```text
-https://<gym-domain>/#receipt=<encoded result>
+https://<gym-domain>/jobs#receipt=<encoded result>
 ```
 
 The candidate returns that complete URL in its response. The controller imports it to inspect the transferred result, save it in localStorage and evaluate it using the matching task version. The receipt is the handoff between independent browsers. Merely creating a run does not let the controller observe the candidate's remote progress.

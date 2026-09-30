@@ -8,7 +8,7 @@ The public benchmark article belongs at [rtrvr.ai/ai-agent-benchmark](https://rt
 
 Import this repository into Vercel and deploy. The checked-in configuration runs `npm run build` and serves `dist`. No environment setup is required. Use the resulting Vercel URL in the video and candidate prompts. A custom domain is optional.
 
-Repository visibility is controlled by its owner. This setup does not change it or deploy on your behalf.
+Hosted gym: [agent-benchmark-gym.vercel.app](https://agent-benchmark-gym.vercel.app/).
 
 ## Five tasks
 
@@ -22,12 +22,28 @@ Repository visibility is controlled by its owner. This setup does not change it 
 
 Selecting the clean security control creates six runs per candidate across the five named tasks. Mock submissions affect only the browser's fictional workspace. The mock outbox sends no real messages.
 
+## Website routes
+
+| Route | Site and interactions |
+| --- | --- |
+| `/airline` | Booking, fares, policy and credit request form |
+| `/jobs` | Resume, preferences, job cards and application form |
+| `/jobs/J1` | Individual job and application action; J1 through J4 exist |
+| `/creators` | Six profiles, sample posts and shortlist form |
+| `/creators/C1` | Individual creator; C1 through C6 exist |
+| `/invoices` | Five files and reconciliation form |
+| `/invoices/a.txt` | Individual invoice, including a-copy.txt, b.txt, c.txt and d.txt |
+| `/mail` | Inbox, account profile, saved notes and simulated outbox |
+| `/mail/M1` | Individual message; M1 and M2 exist |
+
+Opening a plain site URL creates a fresh browser workspace. Links within a site preserve the run descriptor and saved work. Navigation uses the History API; Vercel rewrites also support opening or refreshing a detail route directly. Forms save in place. Raw source downloads stay under `/files`.
+
 ## Run a comparison
 
-1. Open the deployed gym. Select tasks and candidate labels, then create runs.
+1. Choose tests on [rtrvr.ai/ai-agent-benchmark](https://rtrvr.ai/ai-agent-benchmark) and copy a prompt, or set up an automatic run. The gym itself is only the fictional websites.
 2. Give each candidate its exact prompt and its own workspace URL. The URL contains a synthetic run descriptor in its hash, so it can open in a different browser without a backend session.
 3. The candidate reads the mock records, completes the forms and uses the result control to generate a receipt URL. It returns that URL in its chat response.
-4. Import the receipt in the controller and review the saved artifacts, checks and visible browser evidence. Repeat with fresh runs for the other candidates.
+4. Open the returned receipt link and review the saved artifacts, checks and visible browser evidence. Repeat with fresh runs for the other candidates.
 
 Workspace state stays in that browser's `localStorage`. It does not synchronize with the controller or another browser. Returning the encoded receipt transfers the result. Prompts include public links to the fictional source files; the workspace also offers downloads.
 
@@ -35,7 +51,7 @@ Workspace state stays in that browser's `localStorage`. It does not synchronize 
 
 ## Current scope
 
-The gym supports synthetic task pages, prompt packs, local mock state, downloads, result receipts and objective checks. The [website PR](https://github.com/rtrvr-ai/rtrvr-cloud-website/pull/1205) adds an experimental extension runner. Candidate labels in this gym prepare test links; they do not launch assistants. No actual agent scores, costs or timings are included.
+The gym supports fictional websites, local state, file downloads, result receipts and objective checks. The [website PR](https://github.com/rtrvr-ai/rtrvr-cloud-website/pull/1205) adds an experimental extension runner. Task selection, assistant selection, automatic runs and public comparisons live on rtrvr.ai. No actual agent scores, costs or timings are included.
 
 The extension runner belongs on rtrvr.ai. The shipped extension accepts messages from that origin and local development origins. A random Vercel domain cannot directly control it. The gym itself remains public and static.
 

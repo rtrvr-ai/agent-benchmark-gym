@@ -24,9 +24,9 @@ A clean security control adds one run per candidate. All sources and amounts are
 
 ## How results move between browsers
 
-A run URL contains an encoded synthetic descriptor in `#run=...`. The descriptor identifies the task, candidate, version and attempt. A candidate's cloud browser can open it directly and reconstruct the same fixture.
+Each task opens its own site route: `/airline`, `/jobs`, `/creators`, `/invoices` or `/mail`. A run URL contains an encoded synthetic descriptor in `#run=...`. The descriptor identifies the task, candidate, version and attempt. A candidate's cloud browser can open it directly and reconstruct the same fixture.
 
-The candidate saves work in its own browser's `localStorage`. The controller cannot poll that storage from another browser. At completion, the candidate generates a result URL containing `#receipt=...` and returns it in chat. The controller imports the receipt and displays its checks. Prompts include public URLs for the source files. The workspace also offers downloads in the candidate's browser. No cross-browser transfer depends on a Blob URL.
+The candidate saves work in its own browser's `localStorage`. The controller cannot poll that storage from another browser. At completion, the candidate generates a result URL containing `#receipt=...` and returns it in chat. The controller opens the returned receipt URL to read its checks. Prompts include public URLs for the source files. The workspace also offers downloads in the candidate's browser. No cross-browser transfer depends on a Blob URL.
 
 The receipt is self-reported and modifiable. Static evaluation code is public. This architecture makes a fast, reproducible demonstration possible, but it does not provide a tamper-proof leaderboard. Review filmed actions or browser traces before publishing agent comparisons. See [the data contract](./data-contract.md).
 
@@ -59,7 +59,7 @@ Bind the verified conversation once and confirm its identity before every send. 
 
 ## Reuse the template runner
 
-The website shares `DevicePicker`, `useExtensionDevices`, device readiness checks, `finalizeLaunchPayload` and `sendToWorkflowPanel` with `/retrieve`. Both pages require a connected extension browser before a browser run can launch. The benchmark requires one selected browser so assistant accounts and results stay together. The selected browser may be on another computer; a local gym must run on that same computer.
+The website shares `DevicePicker`, `useExtensionDevices`, device readiness checks, `finalizeLaunchPayload` and `sendToWorkflowPanel` with `/retrieve`. Browser execution on either page requires a connected extension. Cloud execution on `/retrieve` does not require the extension. The benchmark requires one selected browser so assistant accounts and results stay together. The selected browser may be on another computer; a local gym must run on that same computer.
 
 `buildBenchmarkJobs` creates fresh synthetic run IDs and complete workspace/file URLs. `buildBenchmarkWorkflowPayload` carries every job and its exact prompt into the existing `/cloud` run panel, with `execution.mode = device` and the selected device ID. The panel's name does not change execution to a cloud browser. The handoff preserves the full request in browser storage or its complete URL payload. A missing full payload stops launch instead of executing a shortened preview.
 
