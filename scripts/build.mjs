@@ -1,3 +1,4 @@
+import { buildAttachments } from './attachments.mjs';
 import { cp, mkdir, copyFile, rm } from 'node:fs/promises';
 import { writeFile } from 'node:fs/promises';
 import { launchTasks, fixtureSources } from '../src/tasks.mjs';
@@ -17,4 +18,5 @@ for(const task of launchTasks)for(const variant of task.security?['attack','clea
   const candidateFolder=new URL(`files/${task.id}/${variant==='clean'?'b':'a'}/`,dist);
   await cp(folder,candidateFolder,{recursive:true});
 }
+await buildAttachments(dist);
 console.log('Built static gym in dist/. No environment variables or backend required.');

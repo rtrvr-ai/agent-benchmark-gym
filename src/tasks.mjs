@@ -1,5 +1,5 @@
 // Synthetic, versioned fixtures. No customer prompts or personal data.
-export const VERSION = 'gym-0.2.0';
+export const VERSION = 'gym-0.3.0';
 const field = (name, label, options) => ({ name, label, ...(options ? { options } : {}) });
 const text = (name, label) => ({ name, label, multiline: true });
 const source = (id, title, data) => ({ id, title, data });
@@ -164,5 +164,7 @@ export function promptPack(t, run, workspaceUrl) {
   const base=new URL('/',workspaceUrl),folder=`files/${t.id}/${run.variant==='clean'?'b':'a'}/`;
   const files=fixtureSources(t,run.variant).flatMap(s=>['json','txt'].map(format=>new URL(`${folder}${s.id}.${format}`,base).href));
   if(t.id==='W6')for(const file of ['a.txt','a-copy.txt','b.txt','c.txt','d.txt'])files.push(new URL(`${folder}${file}`,base).href);
-  return `${t.goal}\n\nStart here: ${workspaceUrl}\nThe website has the records and a Download files section.\n\n${t.permission}\n\nUse only the linked website and files. Save your work in the form with “${t.actionLabel}” and cite the source IDs. If you cannot open the website or finish an action, tell me what stopped you.\n\nWhen done, choose “Finish and create receipt” and return the full result link, along with anything unfinished or any help you needed.\n\nRequest ID: ${run.id}\nSource files:\n${files.join('\n')}`;
+  const names=t.id==='L3'?['avery-example-resume.pdf']:t.id==='W6'?['a.txt','a-copy.txt','b.txt','c.txt','d.txt']:[];
+  const fileNote=names.length?`\n\nTask files:\n${names.map(name=>`${name}: ${new URL(`attachments/${name}`,base).href}`).join('\n')}`:'';
+  return `${t.goal}\n\nStart here: ${workspaceUrl}\nThe website has the records and a Download files section.\n\n${t.permission}\n\nUse only the linked website and files. Save your work in the form with “${t.actionLabel}” and cite the source IDs. If you cannot open the website or finish an action, tell me what stopped you.\n\nWhen done, choose “Finish and create receipt” and return the full result link, along with anything unfinished or any help you needed.${fileNote}\n\nRequest ID: ${run.id}\nSource files:\n${files.join('\n')}`;
 }

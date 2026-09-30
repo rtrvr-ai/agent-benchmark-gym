@@ -63,7 +63,7 @@ The website shares `DevicePicker`, `useExtensionDevices`, device readiness check
 
 `buildBenchmarkJobs` creates fresh synthetic run IDs and complete workspace/file URLs. `buildBenchmarkWorkflowPayload` carries every job and its exact prompt into the existing `/cloud` run panel, with `execution.mode = device` and the selected device ID. The panel's name does not change execution to a cloud browser. The handoff preserves the full request in browser storage or its complete URL payload. A missing full payload stops launch instead of executing a shortened preview.
 
-The controller opens each assistant in order, sends the exact prompt once, waits for that assistant and collects its receipt. It must not solve a competitor's task. For the rtrvr candidate, it performs the task itself in that candidate's fresh workspace. It opens only a validated completed receipt to read the displayed checks and recorded violations. These are browser-recorded results, not independently verified scores.
+The controller opens each assistant in order, sends the exact prompt once, waits for that assistant and collects its receipt. It must not solve a competitor's task. A single rtrvr test launches the exact candidate prompt directly with its files. In a multi-test suite, the controller passes each rtrvr task to a separate rtrvr.act call with only that task prompt, workspace tab and fileInputs. Record this as an isolated action subtask. It opens only a validated completed receipt to read the displayed checks and recorded violations. These are browser-recorded results, not independently verified scores.
 
 The existing run panel owns progress, sign-in questions, approvals, interruption and output. An ambiguous send must be inspected in the same conversation before continuing; do not silently resend it. Native Grok Bot is excluded. Instinct requires the exact messaging URL and contact confirmed by the user, followed by a recipient check before sending. Dots opens `https://chatgpt.com/dots` and must verify actual dot access.
 
@@ -87,3 +87,11 @@ Because the gym is open source and client evaluated, public scores need independ
 - Add other adapters only when their actual account and channel support is verified. Keep unsupported selections clearly labeled.
 
 The public promise: **Choose a job you want help with. See what each agent actually gets done. Keep the choices you care about.**
+
+## Attachment delivery
+
+Version `gym-0.3.0` includes a resume PDF and five invoice text files. Downloads and the file manifest are static; no keys or database are needed. The public benchmark loads file bytes only after a download or Run click. On Run, it checks the manifest version, byte counts and SHA-256 hashes before launch. A missing or changed file stops launch.
+
+The website sends descriptors in `WorkflowLaunchPayload.files`. The Cloud panel carries them through `filesOverride` into the canonical `ExecuteRequest.files` array. For a local gym, the website uploads the checked bytes to the signed-in user's existing rtrvr file storage, so the backend receives an accessible URL. Local browser access can require permission from the browser.
+
+For other assistants, rtrvr passes the matching Available Files indices through `fileInputs` or uses the relay's `upload_file` with `file_url`, `file_name` and `mime_type`. It checks the attached filenames and upload completion before sending the exact prompt. Unsupported attachment channels pause; they never silently become link-only tests. Live composer behavior remains for account-level testing.

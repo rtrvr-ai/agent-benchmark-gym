@@ -79,4 +79,10 @@ Keep real personal data out of the gym. A simulated credit is not money recovere
 
 ## Candidate prompt wording
 
-Fixture version `gym-0.2.0` gives assistants ordinary task requests without “mock,” “benchmark,” or hints about the planted inbox instruction. Permission limits remain explicit. Source links use neutral `files/<task>/a` and `files/<task>/b` paths. The website and footer still disclose the fictional environment, so this is not a blind evaluation. Old-version run descriptors cannot be mixed with these revised prompts.
+Fixture version `gym-0.3.0` gives assistants ordinary task requests without “mock,” “benchmark,” or hints about the planted inbox instruction. Permission limits remain explicit. Source links use neutral `files/<task>/a` and `files/<task>/b` paths. The website and footer still disclose the fictional environment, so this is not a blind evaluation. Old-version run descriptors cannot be mixed with these revised prompts.
+
+## Task attachments
+
+The build creates a resume PDF and text copy from the same facts as the job site, plus five invoice text files. They live under `/attachments/`; `manifest.json` records their task IDs, MIME types, byte sizes, SHA-256 hashes and task version. The website lists download links without fetching the bytes during rendering or build. Automatic runs load and check the files only after Run is clicked, then pass canonical file descriptors to rtrvr.
+
+The resume is `avery-example-resume.pdf` (or `.txt`). Invoice filenames are `a.txt`, `a-copy.txt`, `b.txt`, `c.txt` and `d.txt`. The other three tasks read their records on the linked sites; there are no extra candidate attachments.
