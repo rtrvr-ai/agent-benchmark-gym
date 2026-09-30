@@ -8,7 +8,7 @@ Import this repository into Vercel. The committed configuration builds with `npm
 
 The public article, methodology and runner belong at **rtrvr.ai/ai-agent-benchmark** in the website repository. Keep that stable, indexable address as tasks are added. The gym deployment contains only mock workspaces and result transfer and stays unindexed.
 
-The shipped rtrvr extension accepts website messages from rtrvr.ai, www.rtrvr.ai and local development origins. A random Vercel or dayside.ai page cannot directly drive it. Keep the automatic runner on rtrvr.ai. The gym needs no extension connection to render its fixtures. Verified source references: `rtrvr-relay/chrome-extension/manifest.ts:136` and `rtrvr-relay/chrome-extension/src/background/index.ts:100`.
+The benchmark uses the same setup and launch flow as `/retrieve`: install the extension, sign in, choose a connected browser and open the existing run panel. The gym needs no extension connection. It only serves fictional workspaces and receipts.
 
 ## Five tests first
 
@@ -32,7 +32,7 @@ The receipt is self-reported and modifiable. Static evaluation code is public. T
 
 ## The automatic flow
 
-1. On rtrvr.ai, the user selects tasks and candidates. Optional personal goals suggest tests; the user can change them.
+1. On rtrvr.ai, the user selects tasks and candidates. The user can choose one task or all five.
 2. Check the extension and selected device. Show each adapter's state: Ready, Sign in, Bind assistant conversation, Unavailable or Manual only.
 3. The user signs in or pairs the required messaging surface and identifies the exact assistant conversation. No prompts are sent to a guessed contact.
 4. Clicking **Run selected tests** authorizes delivery of the displayed benchmark prompts to those bound assistants. Create fresh descriptors and candidate URLs.
@@ -41,7 +41,7 @@ The receipt is self-reported and modifiable. Static evaluation code is public. T
 7. Capture the final response and receipt URL. Import the receipt, preserve the visible evidence and move to the next task.
 8. Show objective checks, observed permission violations, elapsed time, interruptions and available cost separately. Mark receipt results as self-reported until independently reviewed.
 
-The controller must not solve the task or improve the candidate's answer. Copying a prompt by hand is a manual lane. An Auto badge requires verified delivery, pause/resume, completion capture and receipt import on the actual adapter.
+The controller must not solve the task or improve the candidate's answer. Copying a prompt by hand is a manual lane. Describe a channel as tested only after checking prompt delivery, pauses, completion capture and receipt return in an actual account.
 
 ## Candidate adapters
 
@@ -57,25 +57,19 @@ Muse documents browser access and side chats in its [design article](https://int
 
 Bind the verified conversation once and confirm its identity before every send. Do not search for “Instinct” and message the first matching display name. Keep unrelated messages outside stored evidence and recordings.
 
-## rtrvr primitives and execution
+## Reuse the template runner
 
-The website bridge already exposes `executeToolInExtension`, using `RTRVR_EXECUTE_TOOL_FROM_WEB`. The extension opens its side panel from the user gesture, normalizes a custom tool and executes it. The wrapper's default 60-second timeout is not a durable suite runner. Source: `rtrvr-cloud-website/lib/extension-bridge.ts:263`; `rtrvr-relay/chrome-extension/src/background/index.ts:599`.
+The website shares `DevicePicker`, `useExtensionDevices`, device readiness checks, `finalizeLaunchPayload` and `sendToWorkflowPanel` with `/retrieve`. Both pages require a connected extension browser before a browser run can launch. The benchmark requires one selected browser so assistant accounts and results stay together. The selected browser may be on another computer; a local gym must run on that same computer.
 
-Inside the rtrvr sandbox, use bounded `rtrvr.act({ userInput, tabIds, maxSteps })` calls. `rtrvr.withNewTab({ url, close: false }, async ({ tabId }) => ...)` supplies the opened tab ID. These are extension sandbox helpers, not globals supplied by the gym. Source: `rtrvr-relay/packages/agent-utilities/lib/builtinHelpers.ts:2934`; `rtrvr-relay/pages/sandbox/index.html:546`.
+`buildBenchmarkJobs` creates fresh synthetic run IDs and complete workspace/file URLs. `buildBenchmarkWorkflowPayload` carries every job and its exact prompt into the existing `/cloud` run panel, with `execution.mode = device` and the selected device ID. The panel's name does not change execution to a cloud browser. The handoff preserves the full request in browser storage or its complete URL payload. A missing full payload stops launch instead of executing a shortened preview.
 
-If using the existing core SDK, select `target: 'extension'`, `requireLocalSession: true` and an explicit `deviceId`. The competitor sessions live in that browser; do not fall back silently to cloud. Source: `rtrvr-cli/packages/core/src/client.ts:310`. A durable production runner can use existing rtrvr infrastructure, but this does not introduce a backend requirement for the static gym.
+The controller opens each assistant in order, sends the exact prompt once, waits for that assistant and collects its receipt. It must not solve a competitor's task. For the rtrvr candidate, it performs the task itself in that candidate's fresh workspace. It opens only a validated completed receipt to read the displayed checks and recorded violations. These are browser-recorded results, not independently verified scores.
 
-Use separate adapter stages for opening, delivering, observing and collecting. Persist their checkpoints in the runner's execution storage. An observation should inspect status and return, not keep a reasoning loop open while a remote agent works. Record the conversation ID and prompt marker before continuing. If delivery is ambiguous, inspect for the marker before sending again.
+The existing run panel owns progress, sign-in questions, approvals, interruption and output. An ambiguous send must be inspected in the same conversation before continuing; do not silently resend it. Native Grok Bot is excluded. Instinct requires the exact messaging URL and contact confirmed by the user, followed by a recipient check before sending. Dots opens `https://chatgpt.com/dots` and must verify actual dot access.
 
-```text
-queued → preflight → delivering → running → collecting receipt → reviewed result
-                   ↘ needs_login / needs_user → resume from checkpoint
-Any active stage → cancelled / timed_out / unavailable / adapter_error
-```
+Prepared runs remain in the benchmark page's session storage. The run panel returns a result table and complete receipt links. Returning to the benchmark page allows each link to be matched against its prepared task, candidate, version and run ID. Opening the receipt displays the objective checks; it does not confer authenticity.
 
-Default to one task at a time per candidate conversation. Several remote candidates may work in parallel after delivery, while rtrvr takes turns observing their tabs. Fresh conversations are preferable where supported. If memory persists across tasks, disclose that test condition.
-
-On cancel, stop new dispatches and request the candidate's stop action where supported. Closing a tab does not necessarily stop a cloud agent. The static gym has no remote revocation or server-enforced freeze. Report whether the remote stop was confirmed.
+The candidate integrations remain a pilot until tested against actual signed-in accounts. There are no measured agent results in this repository. Optional goal-based task recommendations and a larger suite are later additions.
 
 ## Evidence and fair comparisons
 
@@ -89,7 +83,7 @@ Because the gym is open source and client evaluated, public scores need independ
 
 - Deploy the static gym and verify all five forms and receipt transfer across two independent browsers.
 - Record available candidates with exact prompts. Manual delivery is acceptable for the first video when labeled accurately. Show measured results only after running them.
-- Add rtrvr Auto delivery and one calibrated web adapter, including login, duplicate-send recovery, cancel and receipt import tests.
+- Calibrate the shared rtrvr runner with one live assistant account, including login, duplicate-send recovery, stopping and receipt return.
 - Add other adapters only when their actual account and channel support is verified. Keep unsupported selections clearly labeled.
 
 The public promise: **Choose a job you want help with. See what each agent actually gets done. Keep the choices you care about.**
