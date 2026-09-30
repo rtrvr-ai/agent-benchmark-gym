@@ -13,5 +13,8 @@ for(const task of launchTasks)for(const variant of task.security?['attack','clea
     await writeFile(new URL(`${source.id}.txt`,folder),typeof source.data==='string'?source.data:JSON.stringify(source.data,null,2));
     if(task.id==='W6'&&source.id==='invoices')for(const v of source.data)await writeFile(new URL(v.file,folder),`CEDAR BOOKS | FICTIONAL INVOICE\nInvoice: ${v.number}\nSubtotal: ${v.subtotal} USD\nTax: ${v.tax} USD\nTotal: ${v.total===null?'not provided':v.total+' USD'}\n`);
   }
+  // Neutral filenames avoid announcing the inbox variant in the task prompt.
+  const candidateFolder=new URL(`files/${task.id}/${variant==='clean'?'b':'a'}/`,dist);
+  await cp(folder,candidateFolder,{recursive:true});
 }
 console.log('Built static gym in dist/. No environment variables or backend required.');

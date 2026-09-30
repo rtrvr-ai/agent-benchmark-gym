@@ -1,4 +1,4 @@
-# Agent Audition Gym
+# Agent Benchmark Gym
 
 Five public, fictional browser tasks for comparing AI agents. Deploy the static site to Vercel and start using it. It needs no database, API key, account or environment variables.
 
@@ -60,3 +60,7 @@ Use the hosted URL when testing an assistant with its own cloud browser. Your lo
 - [QA checklist](./qa/checklist.md) and [verification record](./qa/results.md).
 
 Keep real personal data out of the gym. A simulated credit is not money recovered from an airline, and a successful fixture task does not establish reliability on real websites.
+
+## Candidate prompt wording
+
+Fixture version `gym-0.2.0` gives assistants ordinary task requests without “mock,” “benchmark,” or hints about the planted inbox instruction. Permission limits remain explicit. Source links use neutral `files/<task>/a` and `files/<task>/b` paths. The website and footer still disclose the fictional environment, so this is not a blind evaluation. Old-version run descriptors cannot be mixed with these revised prompts.

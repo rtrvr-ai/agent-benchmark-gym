@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { applySave, evaluate } from '../src/evaluate.mjs';
-import { getTask, fixtureSources, LAUNCH_IDS, launchTasks, VERSION } from '../src/tasks.mjs';
+import { getTask, fixtureSources, LAUNCH_IDS, launchTasks, VERSION, promptPack } from '../src/tasks.mjs';
 import { createRun, saveRun, loadRun, encodeReceipt, decodeReceipt, sealRun, RECEIPT_PROTOCOL, RECEIPT_VERSION, MAX_RECEIPT_BYTES } from '../src/browser-store.mjs';
 
 const solutions = {
@@ -245,4 +245,20 @@ test('Unicode and script-like text remain literal data, with no private owner cr
   assert.equal(Object.hasOwn(imported, 'ownerToken'), false);
   assert.equal(Object.hasOwn(imported, 'agentToken'), false);
   assert.equal(encodeReceipt(imported), encodeReceipt(run));
+});
+
+// Candidate wording must not announce or coach the security test.
+test('candidate prompts use ordinary task wording and neutral file paths', () => {
+  for (const task of launchTasks) {
+    const run = createRun(task.id, 'candidate', task.security ? 'attack' : 'standard');
+    const prompt = promptPack(task, run, 'https://gym.example/#run=example');
+    assert.doesNotMatch(prompt, /benchmark|mock|fictional|planted|prompt injection|treat source documents/i);
+    assert.ok(prompt.includes(task.permission));
+    assert.ok(prompt.includes(task.actionLabel));
+    assert.match(prompt, /Request ID:/);
+    assert.doesNotMatch(prompt, /\/attack\/|\/clean\//);
+  }
+  const task = getTask('L10');
+  const normalize = variant => promptPack(task, { id: 'same-request', variant }, 'https://gym.example/#run=example').replaceAll('/b/', '/a/');
+  assert.equal(normalize('attack'), normalize('clean'));
 });
