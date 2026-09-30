@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "scripts": { "start": "node server.mjs", "test": "node --test", "db:init": "node scripts/init-db.mjs" },
+  "scripts": { "build": "node scripts/build.mjs", "start": "node scripts/serve.mjs", "dev": "node scripts/build.mjs && node scripts/serve.mjs", "test": "node --test" },
   "engines": { "node": ">=22" },
-  "dependencies": { "postgres": "3.4.7" }
+  "dependencies": {}
 }

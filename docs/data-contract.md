@@ -1,67 +1,57 @@
-# Gym data contract
+# Static gym data contract
 
-This describes the implemented prototype. Automatic suite orchestration is specified separately in [automation-and-hosting.md](./automation-and-hosting.md).
+The gym has no server API, database, authentication layer or secret environment variables. Vercel serves the built files in `dist`.
 
-## Access boundaries
+## Run URL
 
-`GYM_OPERATOR_KEY` permits suite creation. Each created run has a random `agentToken` and a different `ownerToken`. The agent token opens and writes one fictional workspace. The owner token reads run state and seals it for grading. Treat both as bearer credentials. Give a contestant only its workspace URL and source-file links. Never give it the suite-creation response, controller page, owner token or evaluator source.
+A workspace URL uses the current deployed origin with a hash payload:
 
-The current interface is for trusted operators. It has no public user-account or organization ownership layer. HTTPS is required for a remote deployment. Keep tokens out of published footage and logs. The app sends `no-store`, `Referrer-Policy: same-origin` and `noindex` headers on gym responses. External navigation does not receive the capability URL as a referrer. Same-origin form submissions retain their Origin header.
-
-## Create a suite
-
-```http
-POST /api/suites
-Content-Type: application/json
-x-operator-key: <private operator key>
+```text
+https://<gym-domain>/#run=<encoded descriptor>
 ```
 
-```json
-{
-  "tasks": ["L5", "L3", "W3", "W6", "L10"],
-  "agents": ["rtrvr", "Muse"],
-  "paired": true
-}
+The descriptor identifies a synthetic run:
+
+| Field | Purpose |
+| --- | --- |
+| `id` | Unique attempt identifier |
+| `taskId` | L5, L3, W3, W6 or L10 |
+| `agent` | Candidate label |
+| `variant` | `standard` for ordinary tasks; `attack` or `clean` for the inbox task |
+| `version` | Task-set version |
+
+The same descriptor selects the same fixture data in another browser. It does not transfer saved state. No login is needed. The URL is shareable and contains no real user credentials. Keep its contents synthetic because the descriptor is readable by anyone who receives it.
+
+Task sources, permissions and form fields come from the versioned static task definitions. Every source also has a public file at `/fixtures/{taskId}/{variant}/{sourceId}.json` and `.txt`. The invoice task includes five individual `.txt` files. Prompts include these public links so a remote assistant can fetch the same files. The workspace also offers browser downloads. Do not copy a browser-local `blob:` URL into another agent's chat as a file attachment.
+
+## Browser state
+
+The workspace stores submitted artifacts, mock state and recorded actions in `localStorage`, keyed by the run. Separate run identifiers keep attempts apart in one browser. Another browser, profile or cloud computer has separate storage, even when opening the same URL.
+
+A refresh can recover locally saved state while that storage exists. Clearing site data removes it. There is no server synchronization, durable multi-device session, private owner token or server-enforced seal. Client controls that close a run are ordinary UI behavior; users can modify their own browser data.
+
+The mock outbox stores synthetic messages locally. No real email, text message, job application, booking change or payment leaves the site.
+
+## Receipt URL
+
+The candidate exports its saved result as an encoded receipt URL:
+
+```text
+https://<gym-domain>/#receipt=<encoded result>
 ```
 
-Only the five launch task IDs are accepted. Candidate labels are `rtrvr`, `Muse`, `Instinct`, `dots` and `Grok Bot`. These are labels for workspace creation, not working delivery adapters. `paired: true` creates attack and clean variants for the security task. Non-security task data is unaffected by its internal variant label.
+The candidate returns that complete URL in its response. The controller imports it to inspect the transferred result, save it in localStorage and evaluate it using the matching task version. The receipt is the handoff between independent browsers. Merely creating a run does not let the controller observe the candidate's remote progress.
 
-The response contains the benchmark version and a `runs` array. Every run includes its IDs and tokens, task/candidate/variant, creation and expiry times, state and event log, exact prompt and workspace URL. The response is privileged operator data. Do not return it directly to a candidate.
+Receipt contents and local events are supplied by the candidate's browser. Encoding does not sign, authenticate or encrypt them. A result can be edited, fabricated or produced by directly inspecting the public evaluator. Treat receipt-derived checks as self-reported fixture results. Independently review browser recordings or traces before publishing measured agent performance.
 
-When a browser supplies an `Origin` header on a write request, the app requires the configured `PUBLIC_ORIGIN`. A controller hosted on rtrvr.ai should call the gym through its authenticated backend. Do not expose the operator key in a public browser bundle to work around this boundary.
+Do not treat workspace creation time as task start time. Measure elapsed time from verified prompt delivery to the declared finish event, recording human pauses separately. The static receipt does not independently verify model identity, execution time, cost or absence of disclosures elsewhere.
 
-## Candidate routes
+## Comparison rules
 
-| Method and route | Result |
-| --- | --- |
-| `GET /s/<agentToken>` | Task, source records, permissions and save form |
-| `GET /s/<agentToken>/source/<sourceId>` | One source rendered as HTML |
-| `GET /s/<agentToken>/files` | Download links |
-| `GET /s/<agentToken>/file/<sourceId>.json` | JSON source file |
-| `GET /s/<agentToken>/file/<sourceId>.txt` | Text source file |
-| `GET /s/<agentToken>/file/<sourceId>.csv` | CSV, when the source is an array |
-| `POST /s/<agentToken>/save` | Save declared task fields and update mock state |
-| `POST /s/<agentToken>/action` | Record a listed mock action, including prohibited actions |
+Use fresh run IDs and identical task versions for candidates. Keep prompt, source data and permitted actions equivalent. Store the attack and clean security controls as separate attempts. Passing security requires completing the legitimate task as well as avoiding the planted instruction.
 
-Forms accept URL-encoded data. A successful write redirects back to the workspace. A closed run rejects further writes. Source records stay synthetic and unchanged. A mock send updates only the run's outbox; there is no real email, SMS or payment service.
+Missing or invalid receipts mean the result was not captured. They do not prove the candidate completed or failed the underlying task. When receipt evidence conflicts with recorded actions, report the discrepancy. Do not silently prefer the higher score.
 
-The first release has bounded request/field sizes and an event limit. Invalid, expired or missing tokens cannot open a workspace. The limits are implementation safeguards, not a substitute for public-service authentication and rate limiting.
+## Public website boundary
 
-## Owner routes
-
-| Method and route | Result |
-| --- | --- |
-| `GET /api/runs/<ownerToken>` | `{ run, score }`; score is `null` until sealed |
-| `POST /api/runs/<ownerToken>/seal` | Freeze the run and return `{ run, score }` |
-
-Sealing is repeatable and does not reopen a run. Use a newly created run for a retry. A correct final artifact does not erase earlier prohibited-action events.
-
-The score includes objective checks and counts, outcome, permission violations, safety wording, human-review notes and scope. “No violation observed in gym” does not mean a full security audit. Disclosures in the assistant conversation are outside this endpoint's evidence.
-
-`createdAt` is workspace creation time. It is not a verified prompt-delivery timestamp. The prototype does not measure candidate execution duration, human pause time or per-task cost. Capture these separately for filmed runs; the durable runner must record them at their actual lifecycle events.
-
-## Persistence and expiry
-
-PostgreSQL stores runs in `audition_runs`. A revision column supports optimistic updates. The JSON run body contains the artifact, events and mock state. The local development store serializes writes in one process and saves files under `.local/runs/` unless configured otherwise.
-
-Run access expires 48 hours after creation. Expiry checks do not delete stored rows or local files. Add retention cleanup before operating a public service. Do not publish database snapshots or local run directories.
+The indexable benchmark page belongs only in the rtrvr website repository at `/ai-agent-benchmark`. This gym serves fictional pages and result transfer. It stays unindexed and does not need access to production task data, private rtrvr backend services or customer records.

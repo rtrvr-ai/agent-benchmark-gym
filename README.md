@@ -1,92 +1,62 @@
 # Agent Audition Gym
 
-Five fictional browser tasks for comparing AI agents. Each candidate gets its own workspace. The server checks saved work and records prohibited mock actions.
+Five public, fictional browser tasks for comparing AI agents. Deploy the static site to Vercel and start using it. It needs no database, API key, account or environment variables.
 
-This repository contains the gym. The public benchmark page belongs at **[rtrvr.ai/ai-agent-benchmark](https://rtrvr.ai/ai-agent-benchmark)** in the separate rtrvr website repository. Connecting this repository to Vercel does not publish that website page.
+The public benchmark article belongs at [rtrvr.ai/ai-agent-benchmark](https://rtrvr.ai/ai-agent-benchmark) in the separate rtrvr website repository. This repository contains the mock gym only. All people, addresses, jobs, bookings, invoices and money are synthetic.
 
-## Five launch tasks
+## Deploy
 
-| Category | Task | Observable outcome |
+Import this repository into Vercel and deploy. The checked-in configuration runs `npm run build` and serves `dist`. No environment setup is required. Use the resulting Vercel URL in the video and candidate prompts. A custom domain is optional.
+
+Repository visibility is controlled by its owner. This setup does not change it or deploy on your behalf.
+
+## Five tasks
+
+| Category | Task | What to check |
 | --- | --- | --- |
-| Personal | L5: Recover a flight credit | A confirmed mock credit without changing the booking |
-| Personal | L3: Submit a job application | A truthful application for an eligible fictional job |
-| Work | W3: Find creators | A qualifying shortlist with calculated engagement |
-| Work | W6: Reconcile invoices | A deduplicated total and flagged exceptions |
+| Personal | L5: Recover a flight credit | Correct mock credit without changing the booking |
+| Personal | L3: Submit a job application | Eligible job and truthful applicant facts |
+| Work | W3: Find creators | Matching profiles and calculated engagement |
+| Work | W6: Reconcile invoices | Deduplicated total and flagged exceptions |
 | Security | L10: Protect an address | Useful inbox triage without sending the private address |
 
-All identities, addresses, bookings, invoices and amounts are synthetic. The mock outbox does not send real messages. The security task includes an optional clean control, producing six runs per candidate when all five tasks are selected.
+Selecting the clean security control creates six runs per candidate across the five named tasks. Mock submissions affect only the browser's fictional workspace. The mock outbox sends no real messages.
 
-## Run locally
+## Run a comparison
 
-Requires Node.js 22 or later.
+1. Open the deployed gym. Select tasks and candidate labels, then create runs.
+2. Give each candidate its exact prompt and its own workspace URL. The URL contains a synthetic run descriptor in its hash, so it can open in a different browser without a backend session.
+3. The candidate reads the mock records, completes the forms and uses the result control to generate a receipt URL. It returns that URL in its chat response.
+4. Import the receipt in the controller and review the saved artifacts, checks and visible browser evidence. Repeat with fresh runs for the other candidates.
+
+Workspace state stays in that browser's `localStorage`. It does not synchronize with the controller or another browser. Returning the encoded receipt transfers the result. Prompts include public links to the fictional source files; the workspace also offers downloads.
+
+**The receipt is self-reported and modifiable.** This static gym does not produce tamper-proof scores or independently verified execution logs. Review a recording or browser trace before publishing a comparison. Client-side evaluation code and fixture answers are public; this is a transparent test kit, not a hidden test set.
+
+## Current scope
+
+The gym supports synthetic task pages, prompt packs, local mock state, downloads, result receipts and objective checks. The [website PR](https://github.com/rtrvr-ai/rtrvr-cloud-website/pull/1205) adds an experimental extension runner. Candidate labels in this gym prepare test links; they do not launch assistants. No actual agent scores, costs or timings are included.
+
+The extension runner belongs on rtrvr.ai. The shipped extension accepts messages from that origin and local development origins. A random Vercel domain cannot directly control it. The gym itself remains public and static.
+
+## Optional local development
+
+Requires Node.js 22 or later. There are no runtime dependencies.
 
 ```sh
 npm ci
-npm test
-npm start
+npm run build
+npm run dev
 ```
 
-Open **http://localhost:4317**. Local development uses `.local/runs/` and the operator key `local-development`. Choose tasks and candidates, create workspaces, give each candidate only its own exact prompt, then close and score the run after it finishes. Do not give candidates the operator page or owner token.
+Use the local URL printed by the development server. Local development is optional; the deployed gym uses its own current URL and requires no localhost configuration. Run `npm test` for the repository's software checks.
 
-For custom environment values, copy `.env.example` to `.env`. Package scripts do not automatically load this file. Start with:
+Use the hosted URL when testing an assistant with its own cloud browser. Your localhost is accessible to your browser and rtrvr extension, but not to that remote browser. Both versions keep mock state in browser storage. Running locally also lets you edit the fixtures and evaluator.
 
-```sh
-node --env-file=.env server.mjs
-```
+## More detail
 
-With PostgreSQL credentials in `.env`, initialize the table with:
+- [Automation and hosting](./docs/automation-and-hosting.md): how rtrvr can deliver prompts, handle sign-in, collect receipts and run multiple candidates.
+- [Data contract](./docs/data-contract.md): hash URLs, local state and receipt limitations.
+- [QA checklist](./qa/checklist.md) and [verification record](./qa/results.md).
 
-```sh
-node --env-file=.env scripts/init-db.mjs
-```
-
-Alternatively, when `DATABASE_URL` is already exported in your environment, use `npm run db:init`.
-
-## Deploy to Vercel
-
-1. Import this GitHub repository into Vercel. Use the repository root and the **Other** framework preset. No frontend build or output directory is needed. Install dependencies with `npm ci`; leave the build command empty. Select a supported Node.js runtime of version 22 or later.
-2. Add a PostgreSQL database, such as a Vercel Marketplace integration. Use its pooled connection string as `DATABASE_URL`.
-3. Set the server environment variables below. `PUBLIC_ORIGIN` must match the stable deployment URL that agents will open. Set it again if you later add a custom domain.
-4. Run `npm run db:init` in a trusted environment with that database's `DATABASE_URL` exported. The command creates the table if it does not exist. It is a deployment setup step, not the Vercel build command.
-5. Deploy. Open `/health`, then create a disposable run and verify saving and scoring from a second browser. A healthy HTTP response alone does not confirm database access.
-6. Allow public access to the gym's workspace and file URLs so agents' cloud browsers can reach them. Vercel Deployment Protection must not put a login screen in front of those URLs. Keep the operator key private.
-
-| Variable | Required | Value |
-| --- | --- | --- |
-| `DATABASE_URL` | On Vercel | PostgreSQL connection string; server only |
-| `GYM_OPERATOR_KEY` | On Vercel | A long random secret for creating suites; give it only to trusted operators |
-| `PUBLIC_ORIGIN` | On Vercel | Stable HTTPS origin, such as `https://your-project.vercel.app`; no path or trailing token |
-| `PORT` | No | Local server port; defaults to `4317` |
-| `GYM_LOCAL_STORE_DIR` | No | Optional local file-store directory; unused with PostgreSQL |
-
-Use separate databases and secrets for preview and production environments. Gym pages stay out of the search index. The indexable benchmark page and navigation belong only in the website repository.
-
-[`vercel.json`](./vercel.json) routes requests to `api/index.mjs`, includes public assets and sets a 30-second function limit. Each request serves a page or updates state. It does not wait for an agent to finish. PostgreSQL is required on Vercel because local files are not durable there. Keep database secrets in Vercel environment settings, never in source or frontend variables.
-
-## What works and what remains
-
-**Implemented:** task selection, candidate-specific workspaces, exact prompts, downloadable source files, mock form submissions, saved events, server scoring, run sealing, expiry checks and a PostgreSQL store. Runs expire after 48 hours; a scheduled cleanup job is still needed to remove expired records.
-
-**Not implemented:** automatic prompt delivery, competitor UI adapters, durable suite execution, automatic login recovery, model/cost capture or a public leaderboard. The extension button only checks installation. Selecting a candidate does not contact it. Current runs use manual prompt delivery.
-
-This is an operator-controlled recording and evaluation tool. It is not a public self-service service. User accounts, ownership controls, quotas and durable orchestration are required before opening automatic runs to everyone. Never publish an operator key or live workspace/owner tokens.
-
-The shipped rtrvr extension accepts website messages from rtrvr.ai, www.rtrvr.ai and local development origins. A random Vercel domain cannot drive it directly. Keep the eventual automatic controller on rtrvr.ai and use this deployment for fictional workspaces.
-
-## Evaluate honestly
-
-The score checks state saved in the gym. It does not inspect a candidate's full conversation or prove real-site reliability. Review the conversation for invented results, disclosures or interventions before publishing. Record the product, model if available, date, permissions, exact prompt, task version and elapsed time. Missing cost is unknown. Reference-answer tests are not agent benchmark results.
-
-Use a fresh workspace for every attempt. Do not let the rtrvr orchestrator solve the task or expose answer keys to a contestant. Report manual delivery and any human intervention.
-
-## Repository map
-
-- [`src/tasks.mjs`](./src/tasks.mjs): task definitions, synthetic sources and prompt packs; only `LAUNCH_IDS` are offered by the first release.
-- [`src/app.mjs`](./src/app.mjs): pages, files and HTTP endpoints.
-- [`src/store.mjs`](./src/store.mjs): local and PostgreSQL state.
-- [`src/evaluate.mjs`](./src/evaluate.mjs): server-only predicates and mock-state updates.
-- [`test/gym.test.mjs`](./test/gym.test.mjs): behavior and isolation tests.
-- [`docs/automation-and-hosting.md`](./docs/automation-and-hosting.md): full adapter, queue, recovery and hosting plan.
-- [`docs/data-contract.md`](./docs/data-contract.md): implemented endpoints and token boundaries.
-
-No deployment or real-agent results are implied by this repository.
+Keep real personal data out of the gym. A simulated credit is not money recovered from an airline, and a successful fixture task does not establish reliability on real websites.
