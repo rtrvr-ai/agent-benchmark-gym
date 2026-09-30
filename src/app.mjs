@@ -55,7 +55,7 @@ export async function handle(req,res){
       const input=await body(req),ids=[...new Set(input.tasks||[])],agents=[...new Set(input.agents||[])];
       if(!ids.length||!agents.length||ids.some(id=>!LAUNCH_IDS.includes(id))||agents.some(a=>!['rtrvr','Muse','Instinct','dots','Grok Bot'].includes(a)))throw error(400,'Choose supported tasks and candidates');
       const runs=[];
-      for(const agent of agents)for(const id of ids)for(const variant of getTask(id).security&&input.paired?['attack','clean']:['attack']){
+      for(const agent of agents)for(const id of ids)for(const variant of getTask(id).security?(input.paired?['attack','clean']:['attack']):['standard']){
         const run=await createRun(id,agent,variant);runs.push({...run,prompt:promptPack(getTask(id),run,origin()),workspace:`${origin()}/s/${run.agentToken}`});
       }
       return json(res,{version:VERSION,runs},201);
@@ -71,7 +71,12 @@ export async function handle(req,res){
       const run=await readRun(session[1]);if(!run)throw error(404,'Workspace expired or missing');
       const t=getTask(run.taskId),suffix=session[2]||'',sources=fixtureSources(t,run.variant),base=`/s/${run.agentToken}`;
       if(req.method==='GET'&&!suffix)return send(res,workspace(run));
-      if(req.method==='GET'&&suffix==='files')return send(res,page('Files',`<h1>Source files</h1><p>Every file contains only this run’s fictional source records.</p><a href="${base}">Back to workspace</a><ul>${sources.map(s=>`<li>${esc(s.title)}: <a href="${base}/file/${s.id}.json">JSON</a> · <a href="${base}/file/${s.id}.txt">Text</a>${Array.isArray(s.data)?` · <a href="${base}/file/${s.id}.csv">CSV</a>`:''}</li>`).join('')}</ul>`));
+      if(req.method==='GET'&&suffix==='files')return send(res,page('Files',`<h1>Source files</h1><p>Every file contains only this run’s fictional source records.</p><a href="${base}">Back to workspace</a><ul>${sources.map(s=>`<li>${esc(s.title)}: <a href="${base}/file/${s.id}.json">JSON</a> · <a href="${base}/file/${s.id}.txt">Text</a>${Array.isArray(s.data)?` · <a href="${base}/file/${s.id}.csv">CSV</a>`:''}</li>`).join('')}</ul>${t.id==='W6'?`<h2>Individual invoice files</h2><ul>${sources[0].data.map(v=>`<li><a href="${base}/invoice/${esc(v.file)}">${esc(v.file)}</a></li>`).join('')}</ul>`:''}`));
+      if(req.method==='GET'&&suffix.startsWith('invoice/')&&t.id==='W6'){
+        const invoice=sources[0].data.find(v=>v.file===suffix.slice(8));if(!invoice)throw error(404,'Invoice missing');
+        res.setHeader('Content-Disposition',`attachment; filename="${invoice.file}"`);
+        return send(res,`CEDAR BOOKS — FICTIONAL INVOICE\nInvoice: ${invoice.number}\nSubtotal: ${invoice.subtotal} USD\nTax: ${invoice.tax} USD\nTotal: ${invoice.total===null?'not provided':`${invoice.total} USD`}\n`,200,'text/plain; charset=utf-8');
+      }
       if(req.method==='GET'&&suffix.startsWith('source/')){const s=sources.find(s=>s.id===suffix.slice(7));if(!s)throw error(404,'Source missing');return send(res,page(s.title,`<a href="${base}">Workspace</a><h1>${esc(s.title)}</h1>${renderData(s.data)}`));}
       if(req.method==='GET'&&suffix.startsWith('file/')){
         const match=suffix.match(/^file\/([\w-]+)\.(json|txt|csv)$/),s=sources.find(s=>s.id===match?.[1]);if(!s)throw error(404,'File missing');
